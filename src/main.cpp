@@ -41,17 +41,12 @@ int main(int argc, char** argv)
     ResultNotifier::instance().initialize(hostName);
     size_t sessionTimeout = 2;  //2 sec
 
-
-    //Declare thread number for all specific packet processors
-    InitializerSequenceWrapper<RADIUSPacket, size_t> radiusProcesorThreads(1);
-    InitializerSequenceWrapper<UDPPacket, size_t> udpProcesorPoolThreads(1);
-
     //Register packetsProcessor for PacketRouter...
     //You can use - multiple protocol here
     PacketRouter<
                 RADIUSPacket,
                 UDPPacket
-                /*Your packet type HERE*/> packetRouter(std::move(radiusProcesorThreads), std::move(udpProcesorPoolThreads));
+                /*Your packet type HERE*/> packetRouter(1,1);
 
     logger("Initialize packetRouter:  timeout %zu sec", sessionTimeout);
     packetRouter.initialize(sessionTimeout);
