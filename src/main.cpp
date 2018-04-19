@@ -13,9 +13,9 @@ using namespace std::chrono_literals;
 
 int main(int argc, char** argv)
 {
-    if(argc != 3)
+    if(argc != 3 && argc != 4)
     {
-        std::cout << "help --nic_name --raw_packet_pool_size" << std::endl;
+        std::cout << "help --nic_name --raw_packet_pool_size --log_file_name(optional)" << std::endl;
         return -1;
     }
 
@@ -24,7 +24,18 @@ int main(int argc, char** argv)
     size_t rawPacketPoolSize(atoll(argv[2]));
 
     //logger 'facility'
-    initializeLogger(nullptr);
+    if(argc == 4)
+    {
+        std::string logFilePath(argv[3]);
+        //const char logFilePath[] = argv[3];
+        //const char *logFilePathPtr = logFilePath;
+        initializeLogger(logFilePath.c_str());
+    }
+    else
+    {
+        initializeLogger(nullptr);
+    }
+
 
     //create NIC
     NIC nic(rawPacketPoolSize);
@@ -41,12 +52,19 @@ int main(int argc, char** argv)
     ResultNotifier::instance().initialize(hostName);
     size_t sessionTimeout = 2;  //2 sec
 
+
+    //Declare thread number for all specific packet processors
+    InitializerSequenceWrapper<RADIUSPacket, size_t> radiusProcesorThreads(1);
+    InitializerSequenceWrapper<UDPPacket, size_t> udpProcesorPoolThreads(1);
+    InitializerSequenceWrapper<TCPPacket, size_t> tcpProcesorPoolThreads(1);
+
     //Register packetsProcessor for PacketRouter...
     //You can use - multiple protocol here
     PacketRouter<
                 RADIUSPacket,
-                UDPPacket
-                /*Your packet type HERE*/> packetRouter(1,1);
+                UDPPacket,
+                TCPPacket
+                /*Your packet type HERE*/> packetRouter(std::move(radiusProcesorThreads), std::move(udpProcesorPoolThreads), std::move(tcpProcesorPoolThreads));
 
     logger("Initialize packetRouter:  timeout %zu sec", sessionTimeout);
     packetRouter.initialize(sessionTimeout);

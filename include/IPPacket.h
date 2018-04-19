@@ -13,8 +13,8 @@ private:
 public:
     friend class UDPPacket;
     friend class BasePacket<PacketType::IP, IPPacket>;
+    friend class TCPPacket;
 
-    //friend class TCPPacket;
     IPPacket &operator=(IPPacket &&src);
 
     IPPacket(const IPPacket& orig) = delete;
