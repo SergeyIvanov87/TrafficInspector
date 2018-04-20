@@ -3,6 +3,8 @@
 #include "CommonDataDefinition.h"
 #include "BasePacket.h"
 #include "UDPPacket.h"
+#include "TCPPacket.h"
+#include "RADIUSPacket.h"
 #include "ObjectQueue.h"
 #include "ResultNotifier.h"
 #include <numeric>

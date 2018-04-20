@@ -3,10 +3,10 @@
 #include <unordered_map>
 #include "ObjectQueue.h"
 #include "Logger.h"
-#include "RADIUSPacket.h"
 #include "PacketProcessor.h"
 #include "ResultNotifier.h"
 #include <algorithm>
+
 
 template<class SpecificPacket>
 PacketProcessor<SpecificPacket>::PacketProcessor(size_t instancesCount, size_t responseTimeoutMsec/* = 2000*/):
@@ -187,8 +187,38 @@ inline void PacketProcessor<RADIUSPacket>::processPacketsThreadImpl(PacketProces
             packetSessionsMap.insert(std::make_pair(std::move(sp), std::move(packet)));
         }
     }
-    logger("PacketProcessor<%s>::%s - finished", PacketType2String(UDPPacket::getPacketType()), __FUNCTION__);
+    logger("PacketProcessor<%s>::%s - finished", PacketType2String(RADIUSPacket::getPacketType()), __FUNCTION__);
 }
 
 #endif /* PACKETPROCESSOR_HPP */
 
+
+//TCP
+template<>
+inline void PacketProcessor<TCPPacket>::processPacketsThreadImpl(PacketProcessorQueue &recvQueue, bool &stopFlag)
+{
+    logger("PacketProcessor<%s>::%s start", PacketType2String(TCPPacket::getPacketType()), __FUNCTION__);
+    typedef PacketProcessor<TCPPacket>::PacketProcessorQueueItem TCPPacketFromQueue;
+    std::unordered_map<uint32_t, TCPPacketFromQueue> packetSessionsMap;
+    while(!stopFlag)
+    {
+        TCPPacketFromQueue &&packet = recvQueue.getObject();
+        logger("PacketProcessor<%s>::%s  - receive packet: %s", PacketType2String(TCPPacket::getPacketType()), __FUNCTION__, packet->to_string().c_str());
+
+        //Control message types processing
+        if(packet->getCtrlMessageId() == ControlMessageId::SHUTDOWN)
+        {
+            logger("PacketProcessor<%s>::%s - SHUTDOWN is requested", PacketType2String(TCPPacket::getPacketType()), __FUNCTION__);
+
+            m_stop = true;
+            break;
+        }
+
+        if(packet->getCtrlMessageId() == ControlMessageId::SYNC_TIMEOUT)
+        {
+            logger("PacketProcessor<%s>::%s - SYNC_TIMEOUT is requested", PacketType2String(TCPPacket::getPacketType()), __FUNCTION__);
+            continue;
+        }
+    }
+    logger("PacketProcessor<%s>::%s - finished", PacketType2String(TCPPacket::getPacketType()), __FUNCTION__);
+}
