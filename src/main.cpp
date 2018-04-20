@@ -54,9 +54,6 @@ int main(int argc, char** argv)
 
 
     //Declare thread number for all specific packet processors
-    InitializerSequenceWrapper<RADIUSPacket, size_t> radiusProcesorThreads(1);
-    InitializerSequenceWrapper<UDPPacket, size_t> udpProcesorPoolThreads(1);
-    InitializerSequenceWrapper<TCPPacket, size_t> tcpProcesorPoolThreads(1);
 
     //Register packetsProcessor for PacketRouter...
     //You can use - multiple protocol here
@@ -64,7 +61,7 @@ int main(int argc, char** argv)
                 RADIUSPacket,
                 UDPPacket,
                 TCPPacket
-                /*Your packet type HERE*/> packetRouter(std::move(radiusProcesorThreads), std::move(udpProcesorPoolThreads), std::move(tcpProcesorPoolThreads));
+                /*Your packet type HERE*/> packetRouter(1, 1, 1);
 
     logger("Initialize packetRouter:  timeout %zu sec", sessionTimeout);
     packetRouter.initialize(sessionTimeout);
