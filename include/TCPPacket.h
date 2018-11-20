@@ -33,9 +33,6 @@ public:
     size_t getHeaderSizeImpl() const;
     std::string to_stringImpl() const;
 
-    template <class SourcePacket>
-    static bool isConvertiblePacket(SourcePacket *src, uint8_t **next_level_header);
-
     typedef struct tcphdr HeaderType;
     const HeaderType* const getHeadetPtr() const
     {
@@ -46,16 +43,20 @@ public:
         return m_prevLayerPacket.getPacketSizeImpl() - m_prevLayerPacket.getHeaderSizeImpl();
     }
     size_t getPacketSpecificHashImpl() const;
+
+    //IDispatchable interface impl
+    template <class SourcePacket>
+    static bool isDispatchableTypeImpl(const SourcePacket &src, uint8_t **next_level_header);
 public:
     IPPacket m_prevLayerPacket;
     HeaderType *tcp_header;
 };
 
 template <class SourcePacket>
-bool TCPPacket::isConvertiblePacket(SourcePacket *src, uint8_t **next_level_header)
+bool TCPPacket::isDispatchableTypeImpl(const SourcePacket &src, uint8_t **next_level_header)
 {
     uint8_t *next_level_header_ip;
-    if(IPPacket::isConvertiblePacket(src, &next_level_header_ip))
+    if(IPPacket::isDispatchableType(src, &next_level_header_ip))
     {
         IPPacket::HeaderType *ipHeader = (IPPacket::HeaderType *)next_level_header_ip;
         if(ipHeader->protocol == 6)    //TODO magic number

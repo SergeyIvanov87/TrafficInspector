@@ -7,16 +7,25 @@
 #include "RADIUSPacket.h"
 #include "ObjectQueue.h"
 #include "ResultNotifier.h"
+
+#include "Dispatcher/IDispatcher.h"
 #include <numeric>
 
 //Use common logic for processing packet of different types
 template<class SpecificPacket>
-class PacketProcessor
+class PacketProcessor : public IDispatcher<PacketProcessor<SpecificPacket>>
 {
 public:
     using PacketProcessorPacket = SpecificPacket;
     using PacketProcessorQueueItem = std::unique_ptr<SpecificPacket>;
 
+    //IDispatcher interface
+    template<class Type>
+    std::optional<size_t> canBeDispatcheredImpl(const Type &inst, uint8_t **outInfo);
+
+    template<class Type>
+    void dispatchImpl(Type &&inst);
+    
     //Type for inner queue for receive packets
     using PacketProcessorQueue = ObjectQueue<PacketProcessorQueueItem, WaitLockPolicy/*Test SpinLockPolicy*/>;
 
@@ -56,4 +65,3 @@ private:
 
 #include "PacketProcessor.hpp"
 #endif /* PACKETPROCESSOR_H */
-

@@ -127,7 +127,7 @@ void PacketRouter<SupportedPacketsType...>::route(Packet &&packet)
         bool needInterrupt = false;
         bool convResult[]{
                 (!needInterrupt ?
-                 needInterrupt = (std::remove_reference<decltype(x)>::type::PacketProcessorPacket::isConvertiblePacket(packet.get(), &payload))
+                 needInterrupt = (std::remove_reference<decltype(x)>::type::PacketProcessorPacket::isDispatchableType(*packet, &payload))
                 : false)...};
 
         //2. push packet type to specific packetProcessor instanse

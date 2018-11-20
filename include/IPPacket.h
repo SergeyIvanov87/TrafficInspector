@@ -1,7 +1,8 @@
 #ifndef IPPACKET_H
 #define IPPACKET_H
 #include "CommonDataDefinition.h"
-#include<netinet/ip.h>    //Provides declarations for ip header
+#include <type_traits> 
+#include <netinet/ip.h>    //Provides declarations for ip header
 
 class IPPacket : public BasePacket<PacketType::IP, IPPacket>
 {
@@ -21,7 +22,7 @@ public:
     bool operator=(const IPPacket &src) = delete;
     ~IPPacket();
 
-    //Interface  impl
+    //Interfaces impl
     const uint8_t *getDataImpl() const;
     const uint8_t *getPayloadDataImpl() const;
     size_t getHeaderSizeImpl() const;
@@ -39,27 +40,25 @@ public:
     }
 
     size_t getPacketSpecificHashImpl() const;
+
+    //IDispatchable interface impl
     template <class SourcePacket>
-    static bool isConvertiblePacket(SourcePacket *src, uint8_t **next_level_header);
+    static bool isDispatchableTypeImpl(const SourcePacket &src, uint8_t **next_level_header);
 public:
     HeaderType *m_ip_header;
     RawPacketsPoolItem m_prevLayerPacket;
 };
 
 template <class SourcePacket>
-bool IPPacket::isConvertiblePacket(SourcePacket *src, uint8_t **next_level_header)
+bool IPPacket::isDispatchableTypeImpl(const SourcePacket &src, uint8_t **next_level_header)
 {
-    if(!src)
+    static_assert(std::is_base_of_v<ETHPacket, SourcePacket>, "IPPacket::isDispatchableTypeImpl  -- SourcePacket is not derived from ETHPacket");
+    const ETHPacket &etherPacket = static_cast<const ETHPacket &>(src);
+    if(ntohs(etherPacket.getHeadetPtr()->ether_type) == ETHERTYPE_IP)
     {
-        return false;
-    }
-    ETHPacket * etherPacket = static_cast<ETHPacket *>(src);
-    if(ntohs(etherPacket->getHeadetPtr()->ether_type) == ETHERTYPE_IP)
-    {
-        *next_level_header = const_cast<uint8_t *>(etherPacket->getPayloadDataImpl());
+        *next_level_header = const_cast<uint8_t *>(etherPacket.getPayloadDataImpl());
         return true;
     }
     return false;
 }
 #endif /* IPPACKET_H */
-

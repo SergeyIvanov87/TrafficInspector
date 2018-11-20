@@ -84,9 +84,6 @@ public:
     size_t getHeaderSizeImpl() const;
     std::string to_stringImpl() const;
 
-    template <class SourcePacket>
-    static bool isConvertiblePacket(SourcePacket *src, uint8_t **next_level_header);
-
     typedef radiusheader HeaderType;
     const HeaderType* const getHeadetPtr() const
     {
@@ -107,19 +104,21 @@ public:
     {
         return m_avps;
     }
+
+    //IDispatchable interface impl
+    template <class SourcePacket>
+    static bool isDispatchableTypeImpl(const SourcePacket &src, uint8_t **next_level_header);
 protected:
     UDPPacket m_prevLayerPacket;
     HeaderType *radius_header;
-
-
     AVPStorage m_avps;
 };
 
 template <class SourcePacket>
-bool RADIUSPacket::isConvertiblePacket(SourcePacket *src, uint8_t **next_level_header)
+bool RADIUSPacket::isDispatchableTypeImpl(const SourcePacket &src, uint8_t **next_level_header)
 {
     uint8_t *next_level_header_ip;
-    if(UDPPacket::isConvertiblePacket(src, &next_level_header_ip))
+    if(UDPPacket::isDispatchableTypeImpl(src, &next_level_header_ip))
     {
         UDPPacket::HeaderType *udpHeader = (UDPPacket::HeaderType *)next_level_header_ip;
         uint16_t dport = ntohs(udpHeader->uh_dport);
@@ -136,4 +135,3 @@ bool RADIUSPacket::isConvertiblePacket(SourcePacket *src, uint8_t **next_level_h
 }
 
 #endif /* RADIUSPACKET_H */
-

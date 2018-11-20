@@ -5,6 +5,8 @@
 #include "Logger.h"
 #include "PacketProcessor.h"
 #include "ResultNotifier.h"
+
+#include "Dispatcher/IDispatcher.hpp"
 #include <algorithm>
 
 
@@ -28,6 +30,30 @@ PacketProcessor<SpecificPacket>:: ~PacketProcessor()
     //TODO send finish event & join before
     std::for_each(m_processingThread.begin(), m_processingThread.end(), [](auto &thread){thread.join();});
 }
+
+//IDispatcher Interface
+template<class SpecificPacket>
+template<class Type>
+std::optional<size_t> PacketProcessor<SpecificPacket>::canBeDispatcheredImpl(const Type &inst, uint8_t **outInfo)
+{
+    std::optional<size_t> ret;
+    if(PacketProcessorPacket::isDispatchableType(inst.get(), outInfo))
+    {
+        ret = 0;    //curr instance index (myself)
+    }
+    return ret;
+}
+
+template<class SpecificPacket>
+template<class Type>
+void PacketProcessor<SpecificPacket>::dispatchImpl(Type &&inst)
+{
+    PacketProcessorQueueItem specialPacket(SpecificPacket::createPacketPtr(std::move(inst)));
+    
+    size_t workerId = inst->getPacketSpecificHash() % m_receivedPacketQueue.size();
+    m_receivedPacketQueue[workerId].putObject(std::move(inst));
+}
+
 
 //Convert rawpacket or command packet into specific pcket type
 template<class SpecificPacket>

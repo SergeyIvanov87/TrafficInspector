@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <array>
 #include <time.h>
+#include "Dispatcher/IDispatchable.h"
 
 enum class PacketType
 {
@@ -55,7 +56,12 @@ inline constexpr const char *ControlMessageId2String(ControlMessageId t)
 //Use preallocated data buffer MAX_PACKET_SIZE, to avoid
 //unnescessary copy-data and allocation
 template<PacketType type, class ConcretePacket>
-struct BasePacket
+struct BasePacket : public IDispatchable<
+                                                    BasePacket<
+                                                            type,
+                                                            ConcretePacket
+                                                            >
+                                                 >
 {
 
     //TODO do not allocate buffer for  NOT of 'ETH' packet types
@@ -133,9 +139,13 @@ struct BasePacket
         return new ConcretePacket(std::forward<T>(src));
     }
 
+    template <class SourcePacket>
+    static bool isDispatchableTypeImpl(const SourcePacket &src, uint8_t **next_level_header)
+    {
+        return ConcretePacket::isDispatchableTypeImpl(src, next_level_header);
+    }
 protected:
     ControlMessageId ctrlMessageId = ControlMessageId::PROCESSING;
     size_t m_timeStamp;
 };
 #endif /* BASEPACKET_H */
-
