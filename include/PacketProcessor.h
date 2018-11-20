@@ -24,7 +24,10 @@ public:
     std::optional<size_t> canBeDispatcheredImpl(const Type &inst, uint8_t **outInfo);
 
     template<class Type>
-    void dispatchImpl(Type &&inst);
+    void onDispatchImpl(Type &&inst);
+
+    template<class Type>
+    bool onDispatchBroadcastImpl(const Type &inst);
     
     //Type for inner queue for receive packets
     using PacketProcessorQueue = ObjectQueue<PacketProcessorQueueItem, WaitLockPolicy/*Test SpinLockPolicy*/>;

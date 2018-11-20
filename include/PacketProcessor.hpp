@@ -46,7 +46,7 @@ std::optional<size_t> PacketProcessor<SpecificPacket>::canBeDispatcheredImpl(con
 
 template<class SpecificPacket>
 template<class Type>
-void PacketProcessor<SpecificPacket>::dispatchImpl(Type &&inst)
+void PacketProcessor<SpecificPacket>::onDispatchImpl(Type &&inst)
 {
     PacketProcessorQueueItem specialPacket(SpecificPacket::createPacketPtr(std::move(inst)));
     
@@ -54,6 +54,14 @@ void PacketProcessor<SpecificPacket>::dispatchImpl(Type &&inst)
     m_receivedPacketQueue[workerId].putObject(std::move(inst));
 }
 
+template<class SpecificPacket>
+template<class Type>
+bool PacketProcessor<SpecificPacket>::onDispatchBroadcastImpl(const Type &inst)
+{
+    static_assert(std::is_same_v<Type, ControlMessageId>, "PacketProcessor<SpecificPacket>::onDispatchBroadcastImpl -- only ControlMessageId is supported");
+    //TODO
+    pushPacket(inst);
+}
 
 //Convert rawpacket or command packet into specific pcket type
 template<class SpecificPacket>

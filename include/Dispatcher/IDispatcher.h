@@ -21,8 +21,13 @@ struct IDispatcher
     template<class Type>
     void dispatchByIndex(size_t dispatcherIndex, Type &&inst);
 
+    template<class Type>
+    size_t dispatchBroadcast(Type &&inst);
+    
     template<class Type, size_t dispatcherIndex>
     void dispatchByIndex(Type &&inst);
+
+    constexpr std::string getDescription() const;
 private:
     SpecificDispatchers m_dispatchers;
 };
@@ -47,7 +52,13 @@ struct IDispatcher<typename Dispatcher::ProcessingType, Dispatcher> :
     template<class Type>
     void dispatch(Type &&inst)
     {
-        return static_cast<Dispatcher *>(this)->dispatchImpl(std::move(inst));
+        return static_cast<Dispatcher *>(this)->onDispatchImpl(std::move(inst));
+    }
+
+    template<class Type>
+    void dispatchServiceMessage(Type &&inst)
+    {
+        return static_cast<Dispatcher *>(this)->onDispatchBroadcastImpl(std::move(inst));
     }
 };
 

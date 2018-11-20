@@ -19,7 +19,7 @@ std::optional<size_t> IDispatcher<ARGS_DEF>::canBeDispatchered(const Type &inst,
     std::optional<size_t> dispatcherIndex;
 
     //1. check own base type at first
-    if (!Type2Dispatcher::isDispatchableType(inst.get(), outInfo...))
+    if (!Type2Dispatcher::isDispatchableType(inst, outInfo...))
     {
         return dispatcherIndex;
     }
@@ -67,11 +67,29 @@ bool IDispatcher<ARGS_DEF>::dispatch(Type &&inst)
     unsigned char *dummy = nullptr;
     std::optional<size_t> dispatcherIndex = canBeDispatchered(inst, &dummy);
     return (dispatcherIndex.has_value() ?
-                dispatchByIndex(dispatcherIndex.value(), std::move(inst)) :
+                dispatchByIndex(dispatcherIndex.value(), std::forward(inst)) :
                 false
             );
 }
 
+template <ARGS_DECL>
+template<class Type>
+size_t IDispatcher<ARGS_DEF>::dispatchBroadcast(Type &&inst)
+{
+    size_t dispatcheredCount = 0;
+    std::apply(
+        [this, &dispatcheredCount, &inst]
+        (auto &...x)
+        {
+            bool dispatchingResult[]
+            {
+                x.dispatchServiceMessage(std::forward(inst))...
+            };
+        },
+    m_dispatchers);
+    return dispatcheredCount;
+}
+    
 template <ARGS_DECL>
 template<class Type>
 void IDispatcher<ARGS_DEF>::dispatchByIndex(size_t dispatcherIndex, Type &&inst)
@@ -83,7 +101,7 @@ void IDispatcher<ARGS_DEF>::dispatchByIndex(size_t dispatcherIndex, Type &&inst)
         bool dispatchingResult[]
         {
                 (currIndex++ == dispatcherIndex ?
-                    x.dispatch(std::move(inst))
+                    x.dispatch(std::forward(inst))
                 :
                     false)...
         };
@@ -96,4 +114,7 @@ void IDispatcher<ARGS_DEF>::dispatchByIndex(Type &&inst)
 {
     //-S- TODO static_assert(false, "not yet implemented");
 }
+
+#undefine ARGS_DEF
+#undefine ARGS_DECL
 #endif //IDISPATCHER_HPP
