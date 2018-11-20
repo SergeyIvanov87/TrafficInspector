@@ -102,7 +102,7 @@ template <class Packet>
 std::optional<size_t> PacketDispatcher<ARGS_DEF>::route(Packet &&packet)
 {
     std::optional<size_t> dispatcherIndex;
-    
+
     std::apply([this, &packet, &dispatcherIndex](auto &...x)
     {
         bool dispatcheredByCurrentInstance = false;
@@ -135,7 +135,7 @@ std::optional<size_t> PacketDispatcher<ARGS_DEF>::route(Packet &&packet)
 
 //Override for ControlMessage packet types
 template<ARGS_DECL>
-void PacketDispatcher<ARGS_DEF>::route(ControlMessageId packet)
+size_t PacketDispatcher<ARGS_DEF>::route(ControlMessageId packet)
 {
     //send command packet type to ALL
     std::apply([packet](auto &...x)
@@ -143,6 +143,8 @@ void PacketDispatcher<ARGS_DEF>::route(ControlMessageId packet)
         using expander = int[];
         expander {x.dispatchBroadcast(packet)...};
     }, m_currentDispatchers);
+
+    return m_currentDispatchers.size();
 }
 
 //Just troubleshooting - get registered protocol names in our PacketRouter
@@ -164,3 +166,5 @@ std::string PacketDispatcher<ARGS_DEF>::getRegisteredProtocolNames() const
                 });
     return resultStr;
 }
+#undef ARGS_DEF
+#undef ARGS_DECL

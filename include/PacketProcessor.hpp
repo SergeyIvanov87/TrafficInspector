@@ -49,7 +49,7 @@ template<class Type>
 void PacketProcessor<SpecificPacket>::onDispatchImpl(Type &&inst)
 {
     PacketProcessorQueueItem specialPacket(SpecificPacket::createPacketPtr(std::move(inst)));
-    
+
     size_t workerId = inst->getPacketSpecificHash() % m_receivedPacketQueue.size();
     m_receivedPacketQueue[workerId].putObject(std::move(inst));
 }
@@ -60,7 +60,7 @@ bool PacketProcessor<SpecificPacket>::onDispatchBroadcastImpl(const Type &inst)
 {
     static_assert(std::is_same_v<Type, ControlMessageId>, "PacketProcessor<SpecificPacket>::onDispatchBroadcastImpl -- only ControlMessageId is supported");
     //TODO
-    pushPacket(inst);
+    return pushPacket(inst);
 }
 
 //Convert rawpacket or command packet into specific pcket type

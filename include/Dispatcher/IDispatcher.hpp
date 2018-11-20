@@ -23,7 +23,7 @@ std::optional<size_t> IDispatcher<ARGS_DEF>::canBeDispatchered(const Type &inst,
     {
         return dispatcherIndex;
     }
-    
+
     std::apply(
     [this, &dispatcherIndex, &inst, &outInfo...]
     (auto &...x)
@@ -89,7 +89,7 @@ size_t IDispatcher<ARGS_DEF>::dispatchBroadcast(Type &&inst)
     m_dispatchers);
     return dispatcheredCount;
 }
-    
+
 template <ARGS_DECL>
 template<class Type>
 void IDispatcher<ARGS_DEF>::dispatchByIndex(size_t dispatcherIndex, Type &&inst)
@@ -115,6 +115,6 @@ void IDispatcher<ARGS_DEF>::dispatchByIndex(Type &&inst)
     //-S- TODO static_assert(false, "not yet implemented");
 }
 
-#undefine ARGS_DEF
-#undefine ARGS_DECL
+#undef ARGS_DEF
+#undef ARGS_DECL
 #endif //IDISPATCHER_HPP

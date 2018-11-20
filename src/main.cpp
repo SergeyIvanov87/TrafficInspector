@@ -5,7 +5,8 @@
 #include "CommonObjectPool.h"
 #include "NIC.h"
 #include <string.h>
-#include "PacketRouter.h"
+//#include "PacketRouter.h"
+#include "PacketDispatcher.h"
 #include "Logger.h"
 #include <unistd.h>
 
@@ -57,12 +58,17 @@ int main(int argc, char** argv)
 
     //Register packetsProcessor for PacketRouter...
     //You can use - multiple protocol here
-    PacketRouter<
+    /*PacketRouter<
                 RADIUSPacket,
                 UDPPacket,
                 TCPPacket
-                /*Your packet type HERE*/> packetRouter(1, 1, 1);
-
+                /*Your packet type HERE* /> packetRouter(1, 1, 1);*/
+    PacketDispatcher<
+                    IDispatcher<UDPPacket, PacketProcessor<RADIUSPacket>>,
+                    IDispatcher<TCPPacket, PacketProcessor<TCPPacket>>
+                    > packetRouter(
+                                IDispatcher<UDPPacket, PacketProcessor<RADIUSPacket>>(1),
+                                IDispatcher<TCPPacket, PacketProcessor<TCPPacket>>(1));
     logger("Initialize packetRouter:  timeout %zu sec", sessionTimeout);
     packetRouter.initialize(sessionTimeout);
     logger("PacketRouter<%s> initialized", packetRouter.getRegisteredProtocolNames().c_str());
@@ -74,4 +80,3 @@ int main(int argc, char** argv)
     }
     return 0;
 }
-

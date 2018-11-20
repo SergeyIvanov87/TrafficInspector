@@ -34,10 +34,10 @@ public:
 
     bool initialize(size_t sessionTimeoutSeconds);
     void deinitialize();
-    
+
     //facade impl -> balance packet on specific worker
     template <class Packet>
-    size_t route(Packet &&packet);
+    std::optional<size_t> route(Packet &&packet);
     size_t route(ControlMessageId packet);
 
     //send SYN timeout command to packetProcessors
@@ -57,5 +57,5 @@ public:
     bool m_stopFlag = false;
 
 };
-#include "PacketDispatcherr.hpp"
+#include "PacketDispatcher.hpp"
 #endif /* PACKETROUTER_H */
