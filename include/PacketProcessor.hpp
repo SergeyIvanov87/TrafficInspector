@@ -37,7 +37,7 @@ template<class Type>
 std::optional<size_t> PacketProcessor<SpecificPacket>::canBeDispatcheredImpl(const Type &inst, uint8_t **outInfo)
 {
     std::optional<size_t> ret;
-    if(PacketProcessorPacket::isDispatchableType(inst.get(), outInfo))
+    if(PacketProcessorPacket::isDispatchableType(inst, outInfo))
     {
         ret = 0;    //curr instance index (myself)
     }
@@ -46,12 +46,13 @@ std::optional<size_t> PacketProcessor<SpecificPacket>::canBeDispatcheredImpl(con
 
 template<class SpecificPacket>
 template<class Type>
-void PacketProcessor<SpecificPacket>::onDispatchImpl(Type &&inst)
+bool PacketProcessor<SpecificPacket>::onDispatchImpl(Type &&inst)
 {
     PacketProcessorQueueItem specialPacket(SpecificPacket::createPacketPtr(std::move(inst)));
 
     size_t workerId = inst->getPacketSpecificHash() % m_receivedPacketQueue.size();
-    m_receivedPacketQueue[workerId].putObject(std::move(inst));
+    m_receivedPacketQueue[workerId].putObject(std::move(specialPacket));
+    return true;
 }
 
 template<class SpecificPacket>
@@ -61,6 +62,12 @@ bool PacketProcessor<SpecificPacket>::onDispatchBroadcastImpl(const Type &inst)
     static_assert(std::is_same_v<Type, ControlMessageId>, "PacketProcessor<SpecificPacket>::onDispatchBroadcastImpl -- only ControlMessageId is supported");
     //TODO
     return pushPacket(inst);
+}
+
+template<class SpecificPacket>
+constexpr std::string PacketProcessor<SpecificPacket>::to_stringImpl() const
+{
+    return getProtocolName();
 }
 
 //Convert rawpacket or command packet into specific pcket type

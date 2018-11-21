@@ -102,18 +102,29 @@ template <class Packet>
 std::optional<size_t> PacketDispatcher<ARGS_DEF>::route(Packet &&packet)
 {
     std::optional<size_t> dispatcherIndex;
+    std::optional<size_t> dispatcherIndexInstanceNum;
 
-    std::apply([this, &packet, &dispatcherIndex](auto &...x)
+    std::apply([this, &packet, &dispatcherIndex, &dispatcherIndexInstanceNum](auto &...x)
     {
-        bool dispatcheredByCurrentInstance = false;
-        bool dispatchingResult[]
+        uint8_t *payloadPtr = nullptr;
+        std::array<bool, sizeof...(x)> dispatchingResult
         {
-                (!dispatcheredByCurrentInstance ?
-                 dispatcheredByCurrentInstance = x.canBeDispatchered(inst, outInfo...).has_value()
+                (!dispatcherIndexInstanceNum.has_value() ?
+                 dispatcherIndexInstanceNum = x.canBeDispatchered(*packet.get(), &payloadPtr),dispatcherIndexInstanceNum.has_value()
                 : false)...
         };
 
+        int index = 0;
+        int res[]
+        {
+            (dispatchingResult[index++] ?
+                x.dispatchByIndex(dispatcherIndexInstanceNum.value(), std::forward<Packet>(packet)), index
+            : 0)...
+        };
+            (void) res;
+            
         //get dispatcher index
+        /*
         if(auto it = std::find(std::begin(dispatchingResult), std::end(dispatchingResult), true);
                 it !=  std::end(dispatchingResult))
         {
@@ -124,10 +135,12 @@ std::optional<size_t> PacketDispatcher<ARGS_DEF>::route(Packet &&packet)
             int res[]
             {
                 (dispatchingResult[index++] ?
-                    x.dispatch(std::forward(packet)), index
+                    x.dispatch(std::forward<Packet>(packet)), index
                 : 0)...
             };
+            (void) res;
         }
+        * */
     }, m_currentDispatchers);
 
     return dispatcherIndex;
@@ -140,11 +153,11 @@ size_t PacketDispatcher<ARGS_DEF>::route(ControlMessageId packet)
     //send command packet type to ALL
     std::apply([packet](auto &...x)
     {
-        using expander = int[];
+        using expander = size_t[];
         expander {x.dispatchBroadcast(packet)...};
     }, m_currentDispatchers);
 
-    return m_currentDispatchers.size();
+    return std::tuple_size_v<DispatchersPools>;
 }
 
 //Just troubleshooting - get registered protocol names in our PacketRouter

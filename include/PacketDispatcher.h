@@ -22,7 +22,7 @@ class PacketDispatcher
 {
 public:
     //Registered Dispatchers
-    typedef std::tuple<SupportedDispatchers...> DispatchersPools;
+    using DispatchersPools = std::tuple<SupportedDispatchers...>;
 
     PacketDispatcher(SupportedDispatchers &&...dispatchers) :
         m_currentDispatchers(std::forward<SupportedDispatchers>(dispatchers)...),
