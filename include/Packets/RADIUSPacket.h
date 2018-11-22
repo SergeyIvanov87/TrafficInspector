@@ -1,7 +1,7 @@
 
 #ifndef RADIUSPACKET_H
 #define RADIUSPACKET_H
-#include "UDPPacket.h"
+#include "Packets/UDPPacket.h"
 #include <array>
 #include <limits>
 #include <map>

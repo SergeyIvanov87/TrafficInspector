@@ -1,8 +1,8 @@
 #ifndef PACKETPROCESSOR_HPP
 #define PACKETPROCESSOR_HPP
 #include <unordered_map>
-#include "ObjectQueue.h"
-#include "Logger.h"
+#include "Utils/ObjectQueue.h"
+#include "Utils/Logger.h"
 #include "PacketProcessor.h"
 #include "ResultNotifier.h"
 

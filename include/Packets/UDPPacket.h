@@ -1,31 +1,30 @@
-#ifndef TCPPACKET_H
-#define TCPPACKET_H
+#ifndef UDPPACKET_H
+#define UDPPACKET_H
 #include <vector>
 #include <netinet/tcp.h>   //Provides declarations for tcp header
 #include <netinet/udp.h>   //Provides declarations for udp header
 
 #include <string>
 
-#include "IPPacket.h"
+#include "Packets/IPPacket.h"
 
-class TCPPacket : public BasePacket<PacketType::TCP, TCPPacket>
+class UDPPacket : public BasePacket<PacketType::UDP, UDPPacket>
 {
 private:
-    typedef BasePacket<PacketType::TCP, TCPPacket> Base;
-    TCPPacket(ControlMessageId id);
-    TCPPacket(TCPPacket&& orig);
-    TCPPacket(IPPacket &&orig);
-    TCPPacket(RawPacketsPoolItem &&orig);
+    typedef BasePacket<PacketType::UDP, UDPPacket> Base;
+    UDPPacket(ControlMessageId id);
+    UDPPacket(UDPPacket&& orig);
+    UDPPacket(IPPacket &&orig);
+    UDPPacket(RawPacketsPoolItem &&orig);
 
 public:
-    friend class BasePacket<PacketType::TCP, TCPPacket>;
+    friend class BasePacket<PacketType::UDP, UDPPacket>;
     friend class RADIUSPacket;
-    //friend class BasePacket<PacketType::UDP, UDPPacket>;
 
-    TCPPacket(const TCPPacket& orig) = delete;
-    bool operator=(const TCPPacket &src) = delete;
-    TCPPacket  &operator=(TCPPacket &&src);
-     ~TCPPacket();
+    UDPPacket(const UDPPacket& orig) = delete;
+    bool operator=(const UDPPacket &src) = delete;
+    UDPPacket  &operator=(UDPPacket &&src);
+     ~UDPPacket();
 
     //Interface
     const uint8_t *getDataImpl() const;
@@ -33,10 +32,10 @@ public:
     size_t getHeaderSizeImpl() const;
     std::string to_stringImpl() const;
 
-    typedef struct tcphdr HeaderType;
+    typedef struct udphdr HeaderType;
     const HeaderType* const getHeadetPtr() const
     {
-        return tcp_header;
+        return udp_header;
     }
     size_t getPacketSizeImpl() const
     {
@@ -49,17 +48,17 @@ public:
     static bool isDispatchableTypeImpl(const SourcePacket &src, uint8_t **next_level_header);
 public:
     IPPacket m_prevLayerPacket;
-    HeaderType *tcp_header;
+    HeaderType *udp_header;
 };
 
 template <class SourcePacket>
-bool TCPPacket::isDispatchableTypeImpl(const SourcePacket &src, uint8_t **next_level_header)
+bool UDPPacket::isDispatchableTypeImpl(const SourcePacket &src, uint8_t **next_level_header)
 {
     uint8_t *next_level_header_ip;
-    if(IPPacket::isDispatchableType(src, &next_level_header_ip))
+    if(IPPacket::isDispatchableTypeImpl(src, &next_level_header_ip))
     {
         IPPacket::HeaderType *ipHeader = (IPPacket::HeaderType *)next_level_header_ip;
-        if(ipHeader->protocol == 6)    //TODO magic number
+        if(ipHeader->protocol == 17)    //TODO magic number
         {
             *next_level_header = next_level_header_ip + sizeof(IPPacket::HeaderType);
             return true;
@@ -67,4 +66,4 @@ bool TCPPacket::isDispatchableTypeImpl(const SourcePacket &src, uint8_t **next_l
     }
     return false;
 }
-#endif /* TCPPACKET_H */
+#endif /* UDPPACKET_H */

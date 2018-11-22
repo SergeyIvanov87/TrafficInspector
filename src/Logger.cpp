@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <stdarg.h>
-#include "Logger.h"
+#include "Utils/Logger.h"
 
 
 FILE *logFile = nullptr;
@@ -29,4 +29,3 @@ void logger(const char *fmt, ...)
 
     va_end(ap);
 }
-

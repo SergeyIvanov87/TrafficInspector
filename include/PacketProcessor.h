@@ -1,11 +1,11 @@
 #ifndef PACKETPROCESSOR_H
 #define PACKETPROCESSOR_H
 #include "CommonDataDefinition.h"
-#include "BasePacket.h"
-#include "UDPPacket.h"
-#include "TCPPacket.h"
-#include "RADIUSPacket.h"
-#include "ObjectQueue.h"
+#include "Packets/BasePacket.h"
+#include "Packets/UDPPacket.h"
+#include "Packets/TCPPacket.h"
+#include "Packets/RADIUSPacket.h"
+#include "Utils/ObjectQueue.h"
 #include "ResultNotifier.h"
 
 #include "Dispatcher/IDispatcher.h"

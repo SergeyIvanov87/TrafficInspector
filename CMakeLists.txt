@@ -8,14 +8,20 @@ get_filename_component(PROCESS_DIR ${PROCESS_DIR} ABSOLUTE)
 
 set (BRANCH_NAME "trafficInspector")
 
+#set(CMAKE_C_COMPILER /usr/bin/gcc-7)
+#set(CMAKE_CXX_COMPILER /usr/bin/g++-7)
+
 #==============================================================================
 #Common Directories
 set (DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR})
-list (APPEND SRC_DIRECTORIES ${DIRECTORIES}/src)
+list (APPEND SRC_DIRECTORIES ${DIRECTORIES}/src
+                             ${DIRECTORIES}/src/Packets)
 
 #Headers dir
 set (INC_DIRECTORIES ${DIRECTORIES}
-                        ${DIRECTORIES}/include)
+                        ${DIRECTORIES}/include
+                        ${DIRECTORIES}/include/Packets
+                        ${DIRECTORIES}/include/Utils)
 
 #==============================================================================
 #Compile flags

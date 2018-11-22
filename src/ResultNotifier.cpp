@@ -1,6 +1,6 @@
 #include <time.h>
 #include "ResultNotifier.h"
-#include "Logger.h"
+#include "Utils/Logger.h"
 
 NotificationData::NotificationData(const std::string &source, AVPStorage &resp, AVPStorage &req) :
 timeMsec(),

@@ -1,4 +1,4 @@
-#include "RADIUSPacket.h"
+#include "Packets/RADIUSPacket.h"
 #include <algorithm>
 #include <string>
 

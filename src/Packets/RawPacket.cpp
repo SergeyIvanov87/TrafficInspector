@@ -1,5 +1,5 @@
 #include <string>
-#include "RawPacket.h"
+#include "Packets/RawPacket.h"
 #include <arpa/inet.h>
 
 ETHPacket::ETHPacket()

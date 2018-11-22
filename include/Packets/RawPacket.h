@@ -2,7 +2,7 @@
 #ifndef RAWPACKET_H
 #define RAWPACKET_H
 #include <netinet/ether.h>
-#include "BasePacket.h"
+#include "Packets/BasePacket.h"
 
 struct ETHPacket : public BasePacket<PacketType::ETH, ETHPacket>
 {
@@ -48,4 +48,3 @@ public:
     size_t m_size;
 };
 #endif /* RAWPACKET_H */
-

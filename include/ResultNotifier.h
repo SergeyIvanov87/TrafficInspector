@@ -1,8 +1,8 @@
 
 #ifndef RESULTNOTIFIER_H
 #define RESULTNOTIFIER_H
-#include "RADIUSPacket.h"
-#include "ObjectQueue.h"
+#include "Packets/RADIUSPacket.h"
+#include "Utils/ObjectQueue.h"
 #include <thread>
 
 struct NotificationData
@@ -48,4 +48,3 @@ private:
 };
 
 #endif /* RESULTNOTIFIER_H */
-

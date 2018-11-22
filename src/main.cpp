@@ -2,12 +2,12 @@
 #include <array>
 #include <vector>
 #include <iostream>
-#include "CommonObjectPool.h"
+#include "Utils/CommonObjectPool.h"
 #include "NIC.h"
 #include <string.h>
 //#include "PacketRouter.h"
 #include "PacketDispatcher.h"
-#include "Logger.h"
+#include "Utils/Logger.h"
 #include <unistd.h>
 
 using namespace std::chrono_literals;
@@ -62,14 +62,25 @@ int main(int argc, char** argv)
                 RADIUSPacket,
                 UDPPacket,
                 TCPPacket
-                /*Your packet type HERE* /> packetRouter(1, 1, 1);*/
+                / *Your packet type HERE* /> packetRouter(1, 1, 1);*/
+
+    IDispatcher<UDPPacket,
+                        PacketProcessor<RADIUSPacket>,
+                        PacketProcessor<UDPPacket>> udpDispatcher(1,1);
+
+    PacketProcessor<TCPPacket> tcpDispatcher(1);
+    
     PacketDispatcher<
-                    IDispatcher<UDPPacket, PacketProcessor<RADIUSPacket>>,
-                    IDispatcher<TCPPacket, PacketProcessor<TCPPacket>>
-                    > packetRouter(
-                                IDispatcher<UDPPacket, PacketProcessor<RADIUSPacket>>(1),
-                                IDispatcher<TCPPacket, PacketProcessor<TCPPacket>>(1));
+                    IDispatcher<UDPPacket,
+                                        PacketProcessor<RADIUSPacket>,
+                                        PacketProcessor<UDPPacket>>,
+                    PacketProcessor<TCPPacket>
+                    > packetRouter(IDispatcher<UDPPacket,
+                                        PacketProcessor<RADIUSPacket>,
+                                        PacketProcessor<UDPPacket>>(1,1),
+                                   PacketProcessor<TCPPacket>(1));
     logger("Initialize packetRouter:  timeout %zu sec", sessionTimeout);
+    
     packetRouter.initialize(sessionTimeout);
     logger("PacketRouter<%s> initialized", packetRouter.getRegisteredProtocolNames().c_str());
 

@@ -3,9 +3,8 @@
 
 #include <thread>
 #include "CommonDataDefinition.h"
-#include "Logger.h"
+#include "Utils/Logger.h"
 #include "PacketProcessor.h"
-#include "RADIUSPacket.h"
 #include <tuple>
 #include <iostream>
 #include <string.h>
@@ -14,7 +13,7 @@
 #include <poll.h>
 #include <unistd.h>
 
-#include "StaticHelpers.h"
+#include "Utils/StaticHelpers.h"
 
 
 template<class T, class Initializer>
