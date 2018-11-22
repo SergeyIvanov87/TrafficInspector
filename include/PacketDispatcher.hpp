@@ -1,6 +1,12 @@
-#define ARGS_DECL  class ...SupportPacketsType
-#define ARGS_DEF  SupportPacketsType...
+#define ARGS_DECL  class ...SupportedDispatchers
+#define ARGS_DEF  SupportedDispatchers...
 
+template<ARGS_DECL>
+PacketDispatcher<ARGS_DEF>::PacketDispatcher(SupportedDispatchers &&...dispatchers) :
+ Base(std::forward<SupportedDispatchers>(dispatchers)...),
+ m_timerHandler(-1)
+{
+}
 
 template<ARGS_DECL>
 PacketDispatcher<ARGS_DEF>::~PacketDispatcher()
@@ -92,92 +98,9 @@ void PacketDispatcher<ARGS_DEF>::syncThread()
         }
 
         //send sync command
-        this->route(ControlMessageId::SYNC_TIMEOUT);
+        this->dispatchBroadcast(ControlMessageId::SYNC_TIMEOUT);
     }
 }
 
-//Route packet from NIC to specific packet processor instance
-template<ARGS_DECL>
-template <class Packet>
-std::optional<size_t> PacketDispatcher<ARGS_DEF>::route(Packet &&packet)
-{
-    std::optional<size_t> dispatcherIndex;
-    std::optional<size_t> dispatcherIndexInstanceNum;
-
-    std::apply([this, &packet, &dispatcherIndex, &dispatcherIndexInstanceNum](auto &...x)
-    {
-        uint8_t *payloadPtr = nullptr;
-        std::array<bool, sizeof...(x)> dispatchingResult
-        {
-                (!dispatcherIndexInstanceNum.has_value() ?
-                 dispatcherIndexInstanceNum = x.canBeDispatchered(*packet.get(), &payloadPtr),dispatcherIndexInstanceNum.has_value()
-                : false)...
-        };
-
-        int index = 0;
-        int res[]
-        {
-            (dispatchingResult[index++] ?
-                x.dispatchByIndex(dispatcherIndexInstanceNum.value(), std::forward<Packet>(packet)), index
-            : 0)...
-        };
-            (void) res;
-            
-        //get dispatcher index
-        /*
-        if(auto it = std::find(std::begin(dispatchingResult), std::end(dispatchingResult), true);
-                it !=  std::end(dispatchingResult))
-        {
-            dispatcherIndex = std::distance(std::begin(dispatchingResult), it);
-
-            //
-            int index = 0;
-            int res[]
-            {
-                (dispatchingResult[index++] ?
-                    x.dispatch(std::forward<Packet>(packet)), index
-                : 0)...
-            };
-            (void) res;
-        }
-        * */
-    }, m_currentDispatchers);
-
-    return dispatcherIndex;
-}
-
-//Override for ControlMessage packet types
-template<ARGS_DECL>
-size_t PacketDispatcher<ARGS_DEF>::route(ControlMessageId packet)
-{
-    //send command packet type to ALL
-    std::apply([packet](auto &...x)
-    {
-        using expander = size_t[];
-        expander {x.dispatchBroadcast(packet)...};
-    }, m_currentDispatchers);
-
-    return std::tuple_size_v<DispatchersPools>;
-}
-
-//Just troubleshooting - get registered protocol names in our PacketRouter
-template<ARGS_DECL>
-std::string PacketDispatcher<ARGS_DEF>::getRegisteredProtocolNames() const
-{
-    //get protocol string from all packets
-    std::list<std::string> ret;
-    std::apply([&ret](const auto &...x)
-    {
-        ret.insert(ret.end(), {x.to_string()...});
-    }, m_currentDispatchers);
-
-    //collect all with ',' delimeter
-    std::string resultStr = std::accumulate(std::next(ret.begin()), ret.end(), std::string(*ret.begin()),
-                [](std::string rett, const std::string &val)
-                {
-                    return rett + ", " + val;
-                });
-    return resultStr;
-}
 #undef ARGS_DEF
 #undef ARGS_DECL

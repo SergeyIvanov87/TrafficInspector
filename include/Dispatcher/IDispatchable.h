@@ -9,5 +9,9 @@ struct IDispatchable
     {
         return Impl::isDispatchableTypeImpl(pSource, std::forward<SourceAdditionalData>(additionalData)...);
     }
+    static constexpr const char* getTypeDescription()
+    {
+        return Impl::getTypeDescriptionImpl();
+    }
 };
 #endif //IDISPATCHABLE_H

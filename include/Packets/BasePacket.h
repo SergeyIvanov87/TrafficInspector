@@ -144,6 +144,11 @@ struct BasePacket : public IDispatchable<
     {
         return ConcretePacket::isDispatchableTypeImpl(src, next_level_header);
     }
+
+    static constexpr const char *getTypeDescriptionImpl()
+    {
+        return PacketType2String(ConcretePacket::getPacketType());
+    }
 protected:
     ControlMessageId ctrlMessageId = ControlMessageId::PROCESSING;
     size_t m_timeStamp;

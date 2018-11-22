@@ -60,49 +60,20 @@ template<class Type>
 bool PacketProcessor<SpecificPacket>::onDispatchBroadcastImpl(const Type &inst)
 {
     static_assert(std::is_same_v<Type, ControlMessageId>, "PacketProcessor<SpecificPacket>::onDispatchBroadcastImpl -- only ControlMessageId is supported");
-    //TODO
-    return pushPacket(inst);
+
+    //Notify all workers about command packet -> SYNC for example
+    for(auto &workerQueue : m_receivedPacketQueue)
+    {
+        workerQueue.putObject(PacketProcessorQueueItem(SpecificPacket::createPacketPtr(inst)));
+    }
+
+    return true;
 }
 
 template<class SpecificPacket>
 constexpr std::string PacketProcessor<SpecificPacket>::to_stringImpl() const
 {
-    return getProtocolName();
-}
-
-//Convert rawpacket or command packet into specific pcket type
-template<class SpecificPacket>
-template <class ControlPacket>
-typename PacketProcessor<SpecificPacket>::PacketProcessorQueueItem PacketProcessor<SpecificPacket>::createNativeCtrlPacket(ControlPacket &&inputPacket)
-{
-    //Convert control packet for spcefic packet
-    PacketProcessorQueueItem ctrlPacket(new typename PacketProcessorQueueItem::pointer());
-    ctrlPacket->template setCtrlMessageId(inputPacket);
-    PacketProcessorQueueItem ctrlMessage(ctrlPacket);
-    return ctrlMessage;
-}
-
-template<class SpecificPacket>
-bool PacketProcessor<SpecificPacket>::pushPacket(PacketProcessorQueueItem &&inputPacket)
-{
-    //balance packet with specific hash by processing threads.
-    //Specific hash & balancing algorithm should provide session integrity
-    //for example, a pair of source IP:port <-> destination IP:port should be balanced on the one worker thread
-    size_t workerId = inputPacket->getPacketSpecificHash() % m_receivedPacketQueue.size();
-    m_receivedPacketQueue[workerId].putObject(std::move(inputPacket));
-    return true;
-}
-
-template<class SpecificPacket>
-bool PacketProcessor<SpecificPacket>::pushPacket(ControlMessageId inputPacket)
-{
-    //Notify all workers about command packet -> SYNC for example
-    for(auto &workerQueue : m_receivedPacketQueue)
-    {
-        workerQueue.putObject(PacketProcessorQueueItem(SpecificPacket::createPacketPtr(inputPacket)));
-    }
-
-    return true;
+    return PacketType2String(SpecificPacket::getPacketType());
 }
 
 template<class SpecificPacket>
@@ -116,8 +87,6 @@ void PacketProcessor<SpecificPacket>::processPacketsThread(PacketProcessorQueue 
 {
    processPacketsThreadImpl(recvQueue, stopFlag);
 }
-
-
 
 //Specific packets processing implementations
 template<>
@@ -231,9 +200,6 @@ inline void PacketProcessor<RADIUSPacket>::processPacketsThreadImpl(PacketProces
     logger("PacketProcessor<%s>::%s - finished", PacketType2String(RADIUSPacket::getPacketType()), __FUNCTION__);
 }
 
-#endif /* PACKETPROCESSOR_HPP */
-
-
 //TCP
 template<>
 inline void PacketProcessor<TCPPacket>::processPacketsThreadImpl(PacketProcessorQueue &recvQueue, bool &stopFlag)
@@ -263,3 +229,5 @@ inline void PacketProcessor<TCPPacket>::processPacketsThreadImpl(PacketProcessor
     }
     logger("PacketProcessor<%s>::%s - finished", PacketType2String(TCPPacket::getPacketType()), __FUNCTION__);
 }
+
+#endif /* PACKETPROCESSOR_HPP */

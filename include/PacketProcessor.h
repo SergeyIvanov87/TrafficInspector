@@ -40,22 +40,11 @@ public:
     PacketProcessor(const PacketProcessor& orig) = delete;
     ~PacketProcessor();
 
-    //interface for push regular packets
-    bool pushPacket(PacketProcessorQueueItem &&inputPacket);
-
-    //interface for push control packets
-    bool pushPacket(ControlMessageId inputPacket);
     PacketProcessorQueueItem popPacket();
     bool isStopped() const{ return m_stop; }
-    constexpr const char* getProtocolName() const {return PacketType2String(SpecificPacket::getPacketType());}
     void setTimoutForWaitingResponse(size_t timeoutMsec) { m_responseTimeoutMsec = timeoutMsec; }
 
 private:
-
-    //convert base packet from control packets
-    template <class ControlPacket>
-    static PacketProcessorQueueItem createNativeCtrlPacket(ControlPacket &&inputPacket);
-
     //thread for packet processing
     void processPacketsThread(PacketProcessorQueue &recvQueue, bool &stopFlag);
     size_t m_responseTimeoutMsec = 1000;

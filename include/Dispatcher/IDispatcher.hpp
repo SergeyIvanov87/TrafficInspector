@@ -56,7 +56,7 @@ bool IDispatcher<ARGS_DEF>::dispatch(Type &&inst)
 {
     //TODO
     unsigned char *dummy = nullptr;
-    std::optional<size_t> dispatcherIndex = canBeDispatchered(inst, &dummy);
+    std::optional<size_t> dispatcherIndex = canBeDispatchered(*inst, &dummy);   //TODO inst should be a pointer now
     return (dispatcherIndex.has_value() ?
                 dispatchByIndex(dispatcherIndex.value(), std::forward<Type>(inst)), true :
                 false
@@ -73,7 +73,7 @@ size_t IDispatcher<ARGS_DEF>::dispatchBroadcast(Type &&inst)
         {
             bool dispatchingResult[]
             {
-                x.dispatchServiceMessage(std::forward<Type>(inst))...
+                x.dispatchBroadcast(std::forward<Type>(inst))...
             };
             (void)dispatchingResult;
         },
@@ -110,17 +110,18 @@ template <ARGS_DECL>
 constexpr std::string IDispatcher<ARGS_DEF>::to_string() const
 {
     //get protocol string from all packets
-    std::list<std::string> ret;
+    std::list<std::string> ret{Type2Dispatcher::getTypeDescriptionImpl(), ", Dispatchers {"};
     std::apply([&ret](const auto &...x)
     {
-        ret.insert(ret.end(), {x.to_string()...});
+        ret.insert(ret.end(), {( x.to_string() + ", ")...});
     }, m_dispatchers);
-
+    ret.insert(ret.end(), "}");
+    
     //collect all with ',' delimeter
     std::string resultStr = std::accumulate(std::next(ret.begin()), ret.end(), std::string(*ret.begin()),
                 [](std::string rett, const std::string &val)
                 {
-                    return rett + ", " + val;
+                    return rett + val;
                 });
     return resultStr;
 }

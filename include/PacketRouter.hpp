@@ -132,9 +132,11 @@ void PacketRouter<SupportedPacketsType...>::route(Packet &&packet)
 
         //2. push packet type to specific packetProcessor instanse
         int index = 0;
-        int res[]{(convResult[index++] ?
-                x.pushPacket(
-                        this->createSpecificPacketPtr<typename std::remove_reference<decltype(x)>::type::PacketProcessorPacket>(std::move(packet))) : 0)...};
+        int res[]{
+                    (convResult[index++] ?
+                        x.dispatch(std::move(packet))
+                        : 0)...
+                 };
         (void)res;
     }, m_currentProcessors);
 }
@@ -147,7 +149,7 @@ void PacketRouter<SupportedPacketsType...>::route(ControlMessageId packet)
     std::apply([packet](auto &...x)
     {
         using expander = int[];
-        expander {x.pushPacket(packet)...};
+        expander {x.dispatchServiceMessage(packet)...};
     }, m_currentProcessors);
 }
 
@@ -159,7 +161,7 @@ std::string PacketRouter<SupportedPacketsType...>::getRegisteredProtocolNames() 
     std::list<std::string> ret;
     std::apply([&ret](const auto &...x)
     {
-        ret.insert(ret.end(), {x.getProtocolName()...});
+        ret.insert(ret.end(), {x.to_string()...});
     }, m_currentProcessors);
 
     //collect all with ',' delimeter

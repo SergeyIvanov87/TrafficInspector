@@ -41,11 +41,12 @@ int main(int argc, char** argv)
     //create NIC
     NIC nic(rawPacketPoolSize);
     logger("Initialize NIC: %s with raw packets pool size: %zu", nicName.c_str(), rawPacketPoolSize);
-    if(!nic.initialize(nicName.c_str()))
+
+    /*if(!nic.initialize(nicName.c_str()))
     {
         std::cerr << "Cannot initialize network interface card" << std::endl;
         exit(-1);
-    }
+    }*/
 
     //Create data Notifier
     char hostName[32];
@@ -82,12 +83,22 @@ int main(int argc, char** argv)
     logger("Initialize packetRouter:  timeout %zu sec", sessionTimeout);
     
     packetRouter.initialize(sessionTimeout);
-    logger("PacketRouter<%s> initialized", packetRouter.getRegisteredProtocolNames().c_str());
+    logger("PacketRouter<%s> initialized", packetRouter.to_string().c_str());
 
     //Main loop
     while(true)
     {
-        packetRouter.route(nic.receivePacket());
+        auto packetPtr = nic.receivePacket();
+        uint8_t *payloadPtr = nullptr;
+        auto routingInstanceIndex = packetRouter.canBeDispatchered(*packetPtr, &payloadPtr);
+        if(routingInstanceIndex.has_value())
+        {
+            packetRouter.dispatchByIndex(routingInstanceIndex.value(), std::move(packetPtr));
+        }
+        else
+        {
+            logger("Packet: %s cannot be routed", packetPtr->to_string().c_str());
+        }
     }
     return 0;
 }
