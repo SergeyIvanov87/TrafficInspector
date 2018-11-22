@@ -42,11 +42,11 @@ int main(int argc, char** argv)
     NIC nic(rawPacketPoolSize);
     logger("Initialize NIC: %s with raw packets pool size: %zu", nicName.c_str(), rawPacketPoolSize);
 
-    /*if(!nic.initialize(nicName.c_str()))
+    if(!nic.initialize(nicName.c_str()))
     {
         std::cerr << "Cannot initialize network interface card" << std::endl;
         exit(-1);
-    }*/
+    }
 
     //Create data Notifier
     char hostName[32];
