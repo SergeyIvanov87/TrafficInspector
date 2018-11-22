@@ -59,18 +59,20 @@ int main(int argc, char** argv)
 
     //Register packetsProcessor for PacketRouter...
     //You can use - multiple protocol here
-    /*PacketRouter<
+    /* OLD WAY - use PacketRouter
+     PacketRouter<
                 RADIUSPacket,
                 UDPPacket,
                 TCPPacket
                 / *Your packet type HERE* /> packetRouter(1, 1, 1);*/
 
-    IDispatcher<UDPPacket,
-                        PacketProcessor<RADIUSPacket>,
-                        PacketProcessor<UDPPacket>> udpDispatcher(1,1);
-
-    PacketProcessor<TCPPacket> tcpDispatcher(1);
-    
+    /* NEW WAY
+     * Non balanced B-tree processing
+     * 
+     * IDispatcher - is a Decision Node, which get answer:
+     *      is this packet belong to my subtree? - and provide 'index' of subtree
+     * PacketProcessor - is a leaf of this subtree
+     */ 
     PacketDispatcher<
                     IDispatcher<UDPPacket,
                                         PacketProcessor<RADIUSPacket>,
